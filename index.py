@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import sys
 import os
 import re
 import urllib
@@ -15,6 +16,10 @@ import time
 timeout = 5
 socket.setdefaulttimeout(timeout)
 
+img_name        = 'dog'
+img_page_start  = 1
+img_page_number = 1
+img_number      = 1
 
 class Crawler:
     # 睡眠时长
@@ -22,6 +27,7 @@ class Crawler:
     __amount = 0
     __start_amount = 0
     __counter = 0
+    __img_number_cnt  = 0
 
     # 获取图片url内容等
     # t 下载图片时间间隔
@@ -29,7 +35,7 @@ class Crawler:
         self.time_sleep = t
 
     # 开始获取
-    def __getImages(self, word='美女'):
+    def __getImages(self, word):
         search = urllib.parse.quote(word)
         # pn int 图片数
         pn = self.__start_amount
@@ -54,6 +60,8 @@ class Crawler:
                 # 解析json
                 json_data = json.loads(data)
                 self.__saveImage(json_data, word)
+                if self.__img_number_cnt >= img_number:
+                    break
                 # 读取下一页
                 print("下载下一页")
                 pn += 60
@@ -73,6 +81,7 @@ class Crawler:
             try:
                 if self.__downloadImage(info, word) == False:
                     self.__counter -= 1
+                    self.__img_number_cnt -= 1;
             except urllib.error.HTTPError as urllib_err:
                 print(urllib_err)
                 pass
@@ -84,6 +93,9 @@ class Crawler:
             finally:
                 print("小黄图+1,已有" + str(self.__counter) + "张小黄图")
                 self.__counter += 1
+                self.__img_number_cnt += 1;
+            if self.__img_number_cnt >= img_number:
+                break
         return
 
     # 下载图片
@@ -107,12 +119,40 @@ class Crawler:
     # page_number 需要抓取数据页数 总抓取图片数量为 页数x60
     # start_page 起始页数
     def start(self, word, spider_page_num=1, start_page=1):
+        img_number_cnt = 0
         self.__start_amount = (start_page - 1) * 60
         self.__amount = spider_page_num * 60 + self.__start_amount
         self.__getImages(word)
 
-
 crawler = Crawler(0.05)
-# crawler.start('美女', 1, 2)
-crawler.start('二次元 性感', 3, 3)
-# crawler.start('帅哥', 5)
+
+# 第一种用法
+# python index.py search_name image_number start_page
+if 2 == len(sys.argv):
+    img_name        = sys.argv[1]
+    img_page_start  = 1
+    img_number      = int('60')
+    img_page_number = int(img_number)//60 + 1
+
+# 第二种用法
+# python index.py search_name image_number
+if 3 == len(sys.argv):
+    img_name        = sys.argv[1]
+    img_page_start  = 1
+    img_number      = int(sys.argv[2])
+    img_page_number = int(img_number)//60 + 1
+
+# 第三种用法
+# python index.py search_name image_number start_page
+if 4 == len(sys.argv):
+    img_name        = sys.argv[1]
+    img_number      = int(sys.argv[2])
+    img_page_start  = int(sys.argv[3])
+    img_page_number = int(img_number)//60 + 1
+
+print('search name   = ', img_name)
+print('page   start  = ', img_page_start)
+print('page   number = ', img_page_number)
+print('image  number = ', img_number)
+
+crawler.start(img_name, img_page_number, img_page_start)
