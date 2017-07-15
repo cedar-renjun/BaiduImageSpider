@@ -127,7 +127,7 @@ class Crawler:
 crawler = Crawler(0.05)
 
 # 第一种用法
-# python index.py search_name image_number start_page
+# python index.py search_name
 if 2 == len(sys.argv):
     img_name        = sys.argv[1]
     img_page_start  = 1
